@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-
+const mongoose = require('mongoose')
 const Dishes = require('../models/dishes');
 const dishRouter = express.Router();
 
@@ -86,7 +85,6 @@ dishRouter.route('/:dishId')
 
 dishRouter.route('/:dishId/comments')
 .get((req,res,next) => {
-    // res.end('Will send all the dishes to you!');
     Dishes.findById(req.params.dishId)
     .then((dish)=>{
         if (dish != null){
@@ -105,7 +103,6 @@ dishRouter.route('/:dishId/comments')
     .catch(err => next(err));
 })
 .post((req, res, next) => {
-    //res.end('Will add the dish: ' + req.body.name + ' with details: ' + req.body.description);
     //body-parser will have already parsed the json and put it in req.body
     Dishes.findById(req.params.dishId)
     .then((dish)=>{
@@ -157,7 +154,6 @@ dishRouter.route('/:dishId/comments')
 
 dishRouter.route('/:dishId/comments/:commentId')
 .get((req,res,next) => {
-    //res.end('Will send details of the dish: ' + req.params.dishId +' to you!');
     Dishes.findById(req.params.dishId)
     .then((dish)=>{
         if (dish != null && dish.comments.id(req.params.commentId) != null){
@@ -184,9 +180,6 @@ dishRouter.route('/:dishId/comments/:commentId')
     '/comments/'+req.params.commentId);
 })
 .put((req, res, next) => {
-  //res.write('Updating the dish: ' + req.params.dishId + '\n');
-  //res.end('Will update the dish: ' + req.body.name + 
-  //      ' with details: ' + req.body.description);
   Dishes.findById(req.params.dishId)
   .then((dish)=>{
       if (dish != null && dish.comments.id(req.params.commentId) != null){
