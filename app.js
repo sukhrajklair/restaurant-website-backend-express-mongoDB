@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require('mongoose');
 const session = require('express-session');
-const FileStore = require('session-file-store');
+const FileStore = require('session-file-store')(session);
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
@@ -32,53 +32,35 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('12345-67890-09876-54321'));
+//app.use(cookieParser('12345-67890-09876-54321'));
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  store: new FileStore()
+}));
+
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
 
 const auth = (req, res, next)=>{
-  console.log(req.signedCookies);
-  const authHeader = req.headers.authorization;
-  if (!req.signedCookies.user){
-    //if signed cookie doesn't exist then prompt the user to sign in
-    if (!authHeader){
-      const err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      next(err);
-    }
-    else{
-      //authHeader is a string with two words: Basic and the encoded username+password
-      //Firts we are splitting it to on space to extract the encoded username+password
-      //Then we are decoding it using Buffer. The base64 string is then converted to 
-      // a string. The converted string contains username and password formatted as:
-      // "username:password". Therefore we split this string again on ':' to extract 
-      //username and password
-      const auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-      const username = auth[0];
-      const password = auth[1];
-      
-      if (username === 'admin' && password === 'password'){
-        //if the user has signed in then send a cookie to the client so that 
-        //it can be included in the next request
-        res.cookie('user','admin',{signed:true})
-        next();
-      }
-      else{
-        const err = new Error('You are not authenticated!');
-        res.setHeader('WWW-Authenticate', 'Basic');
-        err.status = 401;
-        next(err);
-      }
-    }
+  console.log(req.session);
+  if (!req.session.user){
+    const err = new Error('You are not authenticated!');
+    res.setHeader('WWW-Authenticate', 'Basic');
+    err.status = 401;
+    return next(err);
   }
   else{
-    if (req.signedCookies.user === 'admin'){
+    if (req.session.user === 'authenticated'){
+      console.log('req.session:', req.session);
       next();
     }
     else{
       const err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');
       err.status = 401;
-      next(err);
+      return next(err);
     }
   }
 }
