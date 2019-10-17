@@ -15,9 +15,11 @@ const commentSchema = new Schema({
         type: String,
         required: true
     },
+    //author will refer to the signed user using its id
+    //instead storing author information here
     author: {
-        type: String,
-        required: true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 },
 {
