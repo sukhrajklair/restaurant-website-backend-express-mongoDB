@@ -2,13 +2,23 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose')
 const Dishes = require('../models/dishes');
+const cors = require('./cors');
 const dishRouter = express.Router();
 var authenticate = require('../authenticate');
 
 dishRouter.use(bodyParser.json());
 
 dishRouter.route('/')
-.get((req,res,next) => {
+/* WHen a webpage makes a cross-origin request with method other than GET,
+the broweser makes a 'preflight' request with method OPTIONS. Here we are
+dealing with such request by using cors.corsWithOptios middleware which sets
+the ACAO header to the origini of the request if the origin is in the whitelist.
+The whitelist is declared where cors middleware is configured.
+*/
+.options(cors.corsWithOptions, (req, res)=>{
+    res.sendStatus = 200;
+})
+.get(cors.cors,(req,res,next) => {
     // res.end('Will send all the dishes to you!');
     Dishes.find({})
     //populate the author fields in the comments using info from users
@@ -21,7 +31,7 @@ dishRouter.route('/')
     },err => next(err))
     .catch(err => next(err));
 })
-.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     //res.end('Will add the dish: ' + req.body.name + ' with details: ' + req.body.description);
     //body-parser will have already parsed the json and put it in req.body
     Dishes.create(req.body)
@@ -33,11 +43,11 @@ dishRouter.route('/')
     },err => next(err))
     .catch(err => next(err));
 })
-.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /dishes');
 })
-.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.remove({})
     .then((resp)=>{
         res.statusCode = 200;
@@ -48,7 +58,10 @@ dishRouter.route('/')
 })
 
 dishRouter.route('/:dishId')
-.get((req,res,next) => {
+.options(cors.corsWithOptions, (req, res)=>{
+    res.sendStatus = 200;
+})
+.get(cors.cors, (req,res,next) => {
     //res.end('Will send details of the dish: ' + req.params.dishId +' to you!');
     Dishes.findById(req.params.dishId)
     //populate the author fields in the comments using info from users
@@ -60,11 +73,11 @@ dishRouter.route('/:dishId')
     },err => next(err))
     .catch(err => next(err));
 })
-.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
   res.statusCode = 403;
   res.end('POST operation not supported on /dishes/'+ req.params.dishId);
 })
-.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
   //res.write('Updating the dish: ' + req.params.dishId + '\n');
   //res.end('Will update the dish: ' + req.body.name + 
   //      ' with details: ' + req.body.description);
@@ -77,7 +90,7 @@ dishRouter.route('/:dishId')
     },err => next(err))
     .catch(err => next(err));
 })
-.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     //res.end('Deleting dish: ' + req.params.dishId);
     Dishes.findByIdAndRemove(req.params.dishId)
     .then((resp)=>{
@@ -89,7 +102,10 @@ dishRouter.route('/:dishId')
 })
 
 dishRouter.route('/:dishId/comments')
-.get((req,res,next) => {
+.options(cors.corsWithOptions, (req, res)=>{
+    res.sendStatus = 200;
+})
+.get(cors.cors, (req,res,next) => {
     Dishes.findById(req.params.dishId)
     //populate the author fields in the comments using info from users
     .populate('comments.author')
@@ -109,7 +125,7 @@ dishRouter.route('/:dishId/comments')
     },err => next(err))
     .catch(err => next(err));
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     //body-parser will have already parsed the json and put it in req.body
     Dishes.findById(req.params.dishId)
     .then((dish)=>{
@@ -142,11 +158,11 @@ dishRouter.route('/:dishId/comments')
     },err => next(err))
     .catch(err => next(err));
 })
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /dishes/' + req.params.dishId + '/comments');
 })
-.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish)=>{
         if (dish !== null){
@@ -171,7 +187,10 @@ dishRouter.route('/:dishId/comments')
 })
 
 dishRouter.route('/:dishId/comments/:commentId')
-.get(authenticate.verifyUser, (req,res,next) => {
+.options(cors.corsWithOptions, (req, res)=>{
+    res.sendStatus = 200;
+})
+.get(cors.cors, authenticate.verifyUser, (req,res,next) => {
     Dishes.findById(req.params.dishId)
     //populate the author fields in the comments using info from users
     .populate('comments.author')
@@ -194,12 +213,12 @@ dishRouter.route('/:dishId/comments/:commentId')
     },err => next(err))
     .catch(err => next(err));
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   res.statusCode = 403;
   res.end('POST operation not supported on /dishes/'+ req.params.dishId +
     '/comments/'+req.params.commentId);
 })
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish)=>{
         if (dish == null){
@@ -244,7 +263,7 @@ dishRouter.route('/:dishId/comments/:commentId')
     ,err => next(err))
 
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish)=>{
         if (dish == null){
