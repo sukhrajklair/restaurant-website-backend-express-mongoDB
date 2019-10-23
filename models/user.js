@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const passportLocalMongoose = require('passport-local-mongoose');
 
-
 const User = new Schema({
     firstname: {
         type: String,
@@ -12,11 +11,13 @@ const User = new Schema({
         type: String,
         default: ''
     },
+    facebookId: String,
     admin: {
         type: Boolean,
         default: false
     }
 })
+
 //passport-local-mongoose add in support for username and hashed storage of password
 User.plugin(passportLocalMongoose);
 

@@ -1,11 +1,12 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('./models/user');
-var JwtStrategy = require('passport-jwt').Strategy;
-var ExtractJwt = require('passport-jwt').ExtractJwt;
-var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+const jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
+const FacebookTokenStrategy = require('passport-facebook-token');
 
-var config = require('./config.js');
+const config = require('./config.js');
 //Stratagies require verify callback
 //When passport authenticates a request, it parses the credentials contained
 //in the request and invoke the verify callback with those credentials
@@ -25,7 +26,7 @@ exports.getToken = function(user) {
         {expiresIn: 3600});
 };
 
-var opts = {};
+const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = config.secretKey;
 
@@ -56,3 +57,29 @@ exports.verifyAdmin = (req, res, next) => {
         return next(err);
     }
 }
+
+exports.facebookPassport = passport.use(new FacebookTokenStrategy({
+    clientID: config.facebook.clientId,
+    clientSecret: config.facebook.clientSecret
+}, (accessToken, refereshToken, profile, done)=>{
+    User.findOne({facebookId: profile.id})
+    .then(user=>{
+        if (user){
+            return done(null, user);
+        }
+        else{
+            user = new User({
+                username: profile.displayName
+                });
+            user.facebookId = profile.id;
+            user.firstname = profile.name.givenName;
+            user.lastname = profile.name.familyName;
+            user.save()
+            .then( user=>done(null,user),
+                err => done(err, false)
+            );
+        }
+    },
+    err=>done(null, user))
+}
+))

@@ -3,8 +3,9 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose')
 const Dishes = require('../models/dishes');
 const cors = require('./cors');
+const authenticate = require('../authenticate');
+
 const dishRouter = express.Router();
-var authenticate = require('../authenticate');
 
 dishRouter.use(bodyParser.json());
 

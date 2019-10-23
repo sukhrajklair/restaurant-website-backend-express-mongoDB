@@ -22,7 +22,7 @@ router.get('/', cors.corsWithOptions, authenticate.verifyUser, authenticate.veri
   });
 });
 
-router.post('/signup', (req, res, next) => {
+router.post('/signup', cors.corsWithOptions, (req, res, next) => {
   User.register(new User({username: req.body.username}), 
     req.body.password, 
     (err, user) => {
@@ -33,7 +33,7 @@ router.post('/signup', (req, res, next) => {
       }
       //new user has been registered
       else {
-        //user must be successfully registered before setting its firs and last name
+        //user must be successfully registered before setting its first and last name
         user.firstname = req.body.firstname || '';
         user.lastname = req.body.lastname || '';
         user.save()
@@ -57,7 +57,7 @@ router.post('/signup', (req, res, next) => {
 
 //authenticate the user using local strategy and then send the token in the
 //response. Any further requests from the client will need to included the token
-router.post('/login', passport.authenticate('local'), (req, res) => {
+router.post('/login', cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
   //If this function gets called, authentication was successful.
   //`req.user` contains the authenticated user.
   console.log('logging in');
@@ -80,4 +80,12 @@ router.get('/logout', (req, res, next) => {
   }
 });
 
+router.get('/facebook/token', passport.authenticate('facebook-token'), (req,res,next)=>{
+  if (req.user){
+    const token = authenticate.getToken({_id: req.user._id});
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({success: true, token: token, status: 'You are successfully logged in!'});
+  }
+})
 module.exports = router;
