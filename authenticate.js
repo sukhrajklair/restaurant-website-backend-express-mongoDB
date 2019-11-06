@@ -59,6 +59,7 @@ exports.verifyAdmin = (req, res, next) => {
     }
 }
 
+/*
 exports.facebookPassport = passport.use(new FacebookTokenStrategy({
     clientID: config.facebook.clientId,
     clientSecret: config.facebook.clientSecret
@@ -84,3 +85,4 @@ exports.facebookPassport = passport.use(new FacebookTokenStrategy({
     err=>done(null, user))
 }
 ))
+*/

@@ -39,7 +39,7 @@ promoRouter.route('/')
     res.end('PUT operation not supported on /promotions');
 })
 .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Promos.remove({})
+    Promos.remove(req.query)
     .then((resp)=>{
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
